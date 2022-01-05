@@ -100,9 +100,6 @@ public class MainActivity extends AppCompatActivity {
         btn_predict.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Bitmap resized = Bitmap.createScaledBitmap(bitmap, 224, 224, false);
-                detectFace(resized);
                 try {
 
                     Model model = Model.newInstance(getApplicationContext());
@@ -110,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     // Creates inputs for reference.
                     TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
 
-                    ByteBuffer bytebuff = comvertBitmapToByteBuffer(bitmap);
+                    ByteBuffer bytebuff = comvertBitmapToByteBuffer(detectFace(bitmap));
                     inputFeature0.loadBuffer(bytebuff);
 
                     // Runs model inference and gets result.
@@ -127,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void detectFace(Bitmap bitmap) {
+    private Bitmap detectFace(Bitmap bitmap) {
         BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
         bitmapOptions.inMutable = true;
         Bitmap defaultBitmap = bitmap;
@@ -149,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
             new AlertDialog.Builder(MainActivity.this)
                     .setMessage("Face Detector could not be set up on your device :(")
                     .show();
-            return;
         }
 
         Frame frame = new Frame.Builder().setBitmap(defaultBitmap).build();
@@ -159,13 +155,14 @@ public class MainActivity extends AppCompatActivity {
             float left = face.getPosition().x;
             float top = face.getPosition().y;
             float right = left + face.getWidth();
-            float bottom = top+face.getHeight();
+            float bottom = top + face.getHeight();
             float cornerRadius = 2.0f;
             RectF rectF = new RectF(left, top, right, bottom);
             canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, rectPaint);
         }
-        img.setImageDrawable(new BitmapDrawable(getResources(), temporaryBitmap));
         faceDetector.release();
+        img.setImageDrawable(new BitmapDrawable(getResources(), temporaryBitmap));
+        return temporaryBitmap;
     }
 
     private static final float IMAGE_MEAN = 127.5f;
